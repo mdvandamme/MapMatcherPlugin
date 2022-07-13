@@ -1,0 +1,79 @@
+# ----------------------------------------------
+# Parameter file for map-matching               
+# ----------------------------------------------
+# User : marie-dominique
+# Date : 13/07/2022 13:20:03
+# ----------------------------------------------
+
+# Input files
+input.network.path = "/home/marie-dominique/CHOUCAS/MAPMATCHER/topo_l93_2d.csv"
+input.track.path = "/home/marie-dominique/CHOUCAS/MAPMATCHER/r843.csv"
+
+# Network format
+network.header = true
+network.delimiter = ","
+network.geom.name = ""wkt""
+network.source.name = ""source""
+network.target.name = ""target""
+network.edge.name = ""link_id""
+network.oneway.name = ""
+
+# Track format 
+track.header = false
+track.delimiter = ","
+track.columns.x.id = 2
+track.columns.y.id = 3
+track.columns.t.id = -1
+track.error.code = "-1"
+track.date.fmt = "yyyy-mm-dd hh:mm:ss"
+
+# Computation parameters 
+computation.sigma = 4.0
+computation.beta = 0.2
+computation.radius = 35.0
+computation.transition = 0.0
+computation.limit.speed = 1.7976931348623157E308
+computation.autocorrelation = 60.0
+computation.scope = 100.0
+computation.angle = 0.0
+computation.distribution = normal
+
+# Additional options 
+option.max.candidates = -1
+option.failure.skip = true
+option.confidence.ratio = false
+option.projection = false
+option.precompute.distances = true
+option.buffer.type = full_network
+option.buffer.radius = 300.0
+option.make.topology = false
+option.sort.nodes = false
+option.simplify = false
+option.ref.network = false
+bias.x = 0.0
+bias.y = 0.0
+topology.tolerance = 0.01
+network.rmse = 0.0
+confidence.ratio = 0.0
+network.inaccuracies = false
+
+# Output 
+output.path = "/home/marie-dominique/CHOUCAS/MAPMATCHER/res4/"
+output.clear = true
+output.report = true
+output.graphics = false
+output.debug = false
+output.suffix = "_mm.dat"
+output.delimiter = ","
+output.mute = false
+output.errors = true
+output.parameters = true
+output.index = true
+output.rmse = true
+output.abs.type = from_source_m
+output.confidence = false
+output.index.all.edge = false
+output.index.coords = false
+output.index.format.csv = true
+output.rmse.type = after
+
