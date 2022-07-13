@@ -36,9 +36,10 @@ from qgis.core import (QgsProcessingAlgorithm,
                        QgsProcessingParameterFeatureSink,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterNumber,
-                       QgsRunProcess,
+                       #QgsRunProcess,
                        QgsCoordinateReferenceSystem
                        )
+from PyQt5.QtCore import QProcess
 
 from .util import javaprocess as java
 from .util import parameters as param
@@ -156,8 +157,13 @@ class MapMatchingAlgorithm(QgsProcessingAlgorithm):
         # ---------------------------------------------------------------------
         # Lancement du map matcher
         myRun = java.buildCommandLine(paramfilename)
-        fp.close()
-        QgsRunProcess.create(myRun, True)
+        process = QProcess()
+        process.start(myRun)
+        process.waitForFinished()
+        process.close()
+        #QgsRunProcess.create(myRun, True)
+        
+        
         #process.waitForFinished(3000)
         #process.kill()
         

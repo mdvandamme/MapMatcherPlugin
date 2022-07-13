@@ -112,6 +112,7 @@ def createParamFile(resultatpath, networkpath, gpspath,radius):
     fp.write('output.index.format.csv = true\n')
     fp.write('output.rmse.type = after\n')
     fp.write("\n")
+    fp.close()
 
     return (fp, os.path.realpath(fp.name))
 
