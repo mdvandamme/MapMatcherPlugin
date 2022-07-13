@@ -14,6 +14,7 @@ from . import parameters as param
 
 
 def createFieldsPointMM():
+    
     outFields = QgsFields()
     field1 = QgsField("id_gps", QVariant.String)
     outFields.append(field1)
@@ -29,7 +30,7 @@ def createFieldsPointMM():
 
 
 def createLayerSortie(MapMatchingAlgorithm, parameters, context, crsDest, 
-                      resultatpath, gpslayer):
+                      resultatpath, gpslayer, networklayer):
     
     #   Création de la couche 'track points'
     (sink, dest_id_pl) = MapMatchingAlgorithm.parameterAsSink(parameters, 
@@ -54,6 +55,24 @@ def createLayerSortie(MapMatchingAlgorithm, parameters, context, crsDest,
                 QgsFields(), 
                 QgsWkbTypes.LineString, 
                 crsDest)
+    
+    
+    
+    edges = {}
+    networkpath = param.getNetworkMMPath(resultatpath)
+    with open(networkpath) as f:
+        reader = csv.reader(f, delimiter=',', quoting=csv.QUOTE_ALL, quotechar='"')
+        for row in reader:
+            #link_id,wkt,source,target,one_way
+            if row[0] != 'link_id':
+                idEdge = int(row[0])
+                wkt = str(row[1])
+                src = int(row[2])
+                tgt = int(row[3])
+                    
+                if idEdge not in edges:
+                    edges[idEdge] = [src,tgt,wkt]
+                        
     
     # ---------------------------------------------------------------------
     #   Remplissage des deux premières couches
@@ -93,10 +112,10 @@ def createLayerSortie(MapMatchingAlgorithm, parameters, context, crsDest,
                     sink.addFeature(newPoint, QgsFeatureSink.FastInsert)
                     createLink = True
                      
-                    #tab = edges.get(linkid)
-                    #newEdge = QgsFeature()
-                    #newEdge.setGeometry(QgsGeometry.fromWkt(tab[2]))
-                    #sinkNetwork.addFeature(newEdge, QgsFeatureSink.FastInsert)
+                    tab = edges.get(linkid)
+                    newEdge = QgsFeature()
+                    newEdge.setGeometry(QgsGeometry.fromWkt(tab[2]))
+                    sinkNetwork.addFeature(newEdge, QgsFeatureSink.FastInsert)
                         
                 else:
                     newPoint = QgsFeature()
@@ -112,14 +131,7 @@ def createLayerSortie(MapMatchingAlgorithm, parameters, context, crsDest,
                     sinkLink.addFeature(newLink, QgsFeatureSink.FastInsert)
                     
                         
-                        
-        
-       # ---------------------------------------------------------------------
-       #   Création de la couche ''
-#        
-#        
-#              
-    
-    
     return (dest_id_pl, dest_id_ll, dest_id_nl)
+
+
     

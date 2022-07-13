@@ -153,14 +153,14 @@ class MapMatchingAlgorithm(QgsProcessingAlgorithm):
         # Création des couches de sortie
         crsDest = QgsCoordinateReferenceSystem(2154)
         (dest_id_pl, dest_id_ll, dest_id_nl) = create.createLayerSortie(self, 
-                parameters, context, crsDest, resultatpath, gpslayer)
+                parameters, context, crsDest, resultatpath, gpslayer, networklayer)
         
         
         # ---------------------------------------------------------------------
         #   Symbologie pour les points
         
         style.stylePointsMM(dest_id_pl, context)
-#        style.styleLinkMM(dest_id_ll, context)
+        style.styleLinkMM(dest_id_ll, context)
         
         # ---------------------------------------------------------------------
         # Retour des résultats

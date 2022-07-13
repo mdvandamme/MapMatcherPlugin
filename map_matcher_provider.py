@@ -32,7 +32,6 @@ __revision__ = '$Format:%H$'
 
 from qgis.core import QgsProcessingProvider
 from .algo_prepare_data import PrepareGpsDataAlgorithm
-from .algo_affiche_resultat import AfficheResultatAlgorithm
 from .algo_mapmatching import MapMatchingAlgorithm
 
 class MapMatcherPluginProvider(QgsProcessingProvider):
@@ -55,7 +54,6 @@ class MapMatcherPluginProvider(QgsProcessingProvider):
         Loads all algorithms belonging to this provider.
         """
         self.addAlgorithm(PrepareGpsDataAlgorithm())
-        self.addAlgorithm(AfficheResultatAlgorithm())
         self.addAlgorithm(MapMatchingAlgorithm())
 
     

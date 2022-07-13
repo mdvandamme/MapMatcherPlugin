@@ -15,6 +15,12 @@ def getGpsMMPath(resultatpath, gpsPath):
     return gpsmmpath
 
 
+def getNetworkMMPath(resultatpath):
+    chemin = getResultPath(resultatpath)
+    networkmmpath = chemin + "network_topo.wkt"
+    return networkmmpath
+
+
 def createParamFile(resultatpath, networkpath, gpspath):
     
     now = datetime.now()
