@@ -179,6 +179,7 @@ class MapMatchingAlgorithm(QgsProcessingAlgorithm):
         
         style.stylePointsMM(dest_id_pl, context)
         style.styleLinkMM(dest_id_ll, context)
+        style.styleNetworkConstruct(dest_id_nl, context)
         
         # ---------------------------------------------------------------------
         # Retour des résultats
