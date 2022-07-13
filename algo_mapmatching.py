@@ -30,11 +30,19 @@ __copyright__ = '(C) 2022 by ENSG'
 
 __revision__ = '$Format:%H$'
 
+
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessingAlgorithm,
-                       QgsProcessingParameterCrs,
-                       QgsRunProcess
+                       QgsProcessingParameterFeatureSink,
+                       QgsProcessingParameterFile,
+                       QgsRunProcess,
+                       QgsCoordinateReferenceSystem
                        )
+
+from .util import javaprocess as java
+from .util import parameters as param
+from .util import layerstyle as style
+from .util import createlayer as create
 
 
 class MapMatchingAlgorithm(QgsProcessingAlgorithm):
@@ -63,110 +71,105 @@ class MapMatchingAlgorithm(QgsProcessingAlgorithm):
         with some other properties.
         """
 
-        # We add the input vector features source. It can have any kind of
-        # geometry.
-        
-        print ('11')
-        
-#        self.addParameter(
-#            QgsProcessingParameterFeatureSource(
-#                'gpxLayer',
-#                self.tr('GPS Layer'),
-#                [QgsProcessing.TypeVectorPoint]
-#            )
-#        )
-#            
-        self.addParameter(
-            QgsProcessingParameterCrs(
-                'projection',
-                self.tr('Projection des points gps en sortie')
-                )
+        # We add the input vector features source. It can have any kind of geometry.
+        self.addParameter (
+            QgsProcessingParameterFile (
+                'gpslayer',
+                self.tr('track Layer'),
+                extension = "csv",
+                defaultValue = "/home/marie-dominique/CHOUCAS/MAPMATCHER/r843.csv"
+            )
         )
             
-#        self.addParameter(
-#            QgsProcessingParameterEnum(
-#                'attributs',
-#                self.tr("Select options"),
-#                options=['cpt', 'EPSG:215 - RGF93'],
-#                allowMultiple=True
-#            )
-#        )
+        self.addParameter (
+            QgsProcessingParameterFile (
+                'networklayer',
+                self.tr('Network topo'),
+                extension = "csv",
+                defaultValue = "/home/marie-dominique/CHOUCAS/MAPMATCHER/topo_l93_2d.csv"
+            )
+        )
             
-#        self.addParameter(
-#            QgsProcessingParameterFileDestination (
-#                'csvchemin',
-#                self.tr('Fichier csv'),
-#                defaultValue = '/home/marie-dominique/test.csv',
-#                optional = False
-#            )
-#        )
+        self.addParameter (
+            QgsProcessingParameterFile (
+                'resultatpath',
+                self.tr('Répertoire des résultats'),
+                behavior = QgsProcessingParameterFile.Folder,
+                defaultValue = "/home/marie-dominique/CHOUCAS/MAPMATCHER/res4"
+            )
+        )
             
-#        self.addParameter(
-#            QgsProcessingParameterFeatureSink(
-#                    'csvLayer',
-#                    self.tr("Fichier csv"),
-#                    QgsProcessing.TypeVectorLine, 
-#                    '',
-#                    optional = False
-#            )
-#        )
+            
+        # =====================================================================
+         
+        self.addParameter(
+            QgsProcessingParameterFeatureSink(
+                'pointLayer',
+                self.tr("Sortie - track points")
+            )
+        )
+            
+        self.addParameter(
+            QgsProcessingParameterFeatureSink(
+                'linkLayer',
+                self.tr("Sortie - map matching links")
+            )
+        )
+            
+        self.addParameter(
+            QgsProcessingParameterFeatureSink(
+                'network',
+                self.tr("Sortie - track network")
+            )
+        )
 
-
-    def buildCommandLine(self):
-        
-        jarName = 'mapmatcher-1.5-jar-with-dependencies.jar'
-        
-        cmds = []
-        cmds.append("java")
-        cmds.append("-jar")
-        cmds.append('/home/marie-dominique/CHOUCAS/MAPMATCHER/' + jarName)
-        cmds.append('/home/marie-dominique/CHOUCAS/MAPMATCHER/parameters.txt')
-        
-        cmd = " ".join(cmds)
-        return cmd
-        
+            
 
     def processAlgorithm(self, parameters, context, feedback):
         """
         """
         
-        myRun = self.buildCommandLine()
-        #process = QgsRunProcess(self.iface)
-        #process.start(cmd)
+        # ---------------------------------------------------------------------
+        # Les paramètres
+        networklayer = self.parameterAsFile(parameters, 'networklayer', context)
+        gpslayer = self.parameterAsFile(parameters, 'gpslayer', context)
+        resultatpath = self.parameterAsFile(parameters, 'resultatpath', context)
+        
+        
+        # ---------------------------------------------------------------------
+        # Création du fichier des paramètres temporaires
+        (fp, paramfilename) = param.createParamFile(resultatpath, networklayer, gpslayer)
+        
+        
+        # ---------------------------------------------------------------------
+        # Lancement du map matcher
+        myRun = java.buildCommandLine(paramfilename)
+        fp.close()
+        QgsRunProcess.create(myRun, True)
         #process.waitForFinished(3000)
         #process.kill()
         
-        QgsRunProcess.create(myRun, True)
-
-#        pathcsv = parameters['csvchemin']
-#        f = open(pathcsv, 'w')
-#        writer = csv.writer(f)
-#        # writer.writerow(['id','x', 'y', 'z', 'no_time_stamp'])
-#        
-#        crsSrc = QgsCoordinateReferenceSystem(4326)    # WGS 84
-#        crsDest = self.parameterAsCrs(parameters, 'projection', context)
-#        #crsDest = QgsCoordinateReferenceSystem(2154)  # Lambert93
-#        xform = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
-#        
-#        gpsLayer = self.parameterAsSource(parameters, 'gpxLayer', context)
-#        total = 100.0 / gpsLayer.featureCount() if gpsLayer.featureCount() else 0
-#        features = gpsLayer.getFeatures()
-#        for current, feature in enumerate(features):
-#            # Stop the algorithm if cancel button has been clicked
-#            if feedback.isCanceled():
-#                break
-#            
-#            gPoint = feature.geometry()
-#            gPoint.transform(xform)
-#            
-#            attrs = feature.attributes()
-#            writer.writerow([attrs[2], gPoint.asPoint().x(), gPoint.asPoint().y(), attrs[3], 'no_time_stamp'])
-#
-#            feedback.setProgress(int(current * total))
-#            
-#        f.close()
-            
-        return {'retour': 'OK'}
+        # ---------------------------------------------------------------------
+        # Création des couches de sortie
+        crsDest = QgsCoordinateReferenceSystem(2154)
+        (dest_id_pl, dest_id_ll, dest_id_nl) = create.createLayerSortie(self, 
+                parameters, context, crsDest, resultatpath, gpslayer)
+        
+        
+        # ---------------------------------------------------------------------
+        #   Symbologie pour les points
+        
+        style.stylePointsMM(dest_id_pl, context)
+#        style.styleLinkMM(dest_id_ll, context)
+        
+        # ---------------------------------------------------------------------
+        # Retour des résultats
+        #
+        return {
+            'pointLayer': dest_id_pl,
+            'linkLayer': dest_id_ll,
+            'network': dest_id_nl
+        }
     
     
 
