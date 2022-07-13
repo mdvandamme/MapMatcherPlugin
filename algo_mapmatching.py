@@ -35,6 +35,7 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessingAlgorithm,
                        QgsProcessingParameterFeatureSink,
                        QgsProcessingParameterFile,
+                       QgsProcessingParameterNumber,
                        QgsRunProcess,
                        QgsCoordinateReferenceSystem
                        )
@@ -99,6 +100,16 @@ class MapMatchingAlgorithm(QgsProcessingAlgorithm):
             )
         )
             
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                    name='radius',
+                    description=self.tr("Radius"),
+                    type=QgsProcessingParameterNumber.Double,
+                    defaultValue=35.0,
+                    optional=False
+            )
+        )
+            
             
         # =====================================================================
          
@@ -138,7 +149,8 @@ class MapMatchingAlgorithm(QgsProcessingAlgorithm):
         
         # ---------------------------------------------------------------------
         # Création du fichier des paramètres temporaires
-        (fp, paramfilename) = param.createParamFile(resultatpath, networklayer, gpslayer)
+        radius = self.parameterAsInt(parameters, "radius", context)
+        (fp, paramfilename) = param.createParamFile(resultatpath, networklayer, gpslayer,radius)
         
         
         # ---------------------------------------------------------------------
