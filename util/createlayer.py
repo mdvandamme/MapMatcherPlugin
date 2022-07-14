@@ -28,6 +28,18 @@ def createFieldsPointMM():
     return outFields
 
 
+def createFieldsReseauMM():
+    
+    outFields = QgsFields()
+    field1 = QgsField("link_id", QVariant.String)
+    outFields.append(field1)
+    field2 = QgsField("abs_key", QVariant.String)
+    outFields.append(field2)
+    field3 = QgsField("ordre", QVariant.Int)
+    outFields.append(field3)
+    
+    return outFields
+
 
 def createLayerSortie(MapMatchingAlgorithm, parameters, context, crsDest, 
                       resultatpath, gpslayer, networklayer):
@@ -52,11 +64,21 @@ def createLayerSortie(MapMatchingAlgorithm, parameters, context, crsDest,
     (sinkNetwork, dest_id_nl) = MapMatchingAlgorithm.parameterAsSink(parameters, 
                 'network',
                 context, 
-                QgsFields(), 
+                createFieldsReseauMM(), 
                 QgsWkbTypes.LineString, 
                 crsDest)
     
-    
+    idedges = {}
+    with open(networklayer) as f:
+        reader = csv.reader(f, delimiter=',', quoting=csv.QUOTE_ALL, quotechar='"')
+        for row in reader:
+            #link_id,wkt,source,target,one_way
+            if row[0] != 'link_id':
+                idEdge = int(row[0])
+                abskey = str(row[1])
+                    
+                if idEdge not in idedges:
+                    idedges[idEdge] = abskey
     
     edges = {}
     networkpath = param.getNetworkMMPath(resultatpath)
@@ -76,6 +98,10 @@ def createLayerSortie(MapMatchingAlgorithm, parameters, context, crsDest,
     
     # ---------------------------------------------------------------------
     #   Remplissage des deux premières couches
+    
+    f = open(param.getTronconTriePath(resultatpath), 'w')
+    writer = csv.writer(f)
+    writer.writerow(['link_id', 'abs_key', 'ordre'])
         
     # Ouverture des fichiers
     gpsmmpath = param.getGpsMMPath(resultatpath, gpslayer)
@@ -115,7 +141,10 @@ def createLayerSortie(MapMatchingAlgorithm, parameters, context, crsDest,
                     tab = edges.get(linkid)
                     newEdge = QgsFeature()
                     newEdge.setGeometry(QgsGeometry.fromWkt(tab[2]))
+                    newEdge.setAttributes([linkid, idedges[linkid], idTrackPoint])
                     sinkNetwork.addFeature(newEdge, QgsFeatureSink.FastInsert)
+                    
+                    writer.writerow([linkid, idedges[linkid], idTrackPoint])
                         
                 else:
                     newPoint = QgsFeature()
@@ -130,7 +159,9 @@ def createLayerSortie(MapMatchingAlgorithm, parameters, context, crsDest,
                     newLink.setGeometry(lineLink)
                     sinkLink.addFeature(newLink, QgsFeatureSink.FastInsert)
                     
-                        
+    f.close()
+    
+                    
     return (dest_id_pl, dest_id_ll, dest_id_nl)
 
 

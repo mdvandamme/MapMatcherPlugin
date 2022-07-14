@@ -21,6 +21,12 @@ def getNetworkMMPath(resultatpath):
     return networkmmpath
 
 
+def getTronconTriePath(resultatpath):
+    chemin = getResultPath(resultatpath)
+    networkmmpath = chemin + "troncon_track_trie.csv"
+    return networkmmpath
+
+
 def createParamFile(resultatpath, networkpath, gpspath,radius):
     
     now = datetime.now()
